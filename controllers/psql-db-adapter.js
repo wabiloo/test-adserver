@@ -5,8 +5,13 @@ class PsqlDBAdapter extends DBAdapter {
     // TODO ...
   }
 
-  // Get a list of running test sessions.
+  // Get a list of running test sessions (objects).
   async getAllSessions(opt) {
+    // TODO ...
+  }
+
+  // Get a list of running test sessions.
+  async getSessions(opt) {
     // TODO ...
   }
 
@@ -23,6 +28,12 @@ class PsqlDBAdapter extends DBAdapter {
   async DeleteSession(sessionId) {
     // TODO ...
   }
+
+  // Get a list of all events across all sessions.
+  async getEvents(opt) {
+    // TODO ...
+  }
+
 }
 
 const adapter = new PsqlDBAdapter();

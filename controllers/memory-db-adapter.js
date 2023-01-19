@@ -10,7 +10,7 @@ class MemoryDBAdapter extends DBAdapter {
     return 1;
   }
 
-  // Get a List of running test sessions.
+  // Extract and filter all Session objects
   async getAllSessions(opt) {
     let sessionList = Object.values(SESSION_STORE);
 
@@ -25,6 +25,13 @@ class MemoryDBAdapter extends DBAdapter {
       return dateB - dateA;
     });
     
+    return sessionList
+  }
+
+  // Get a List of running test sessions.
+  async getSessions(opt) {
+    let sessionList = await this.getAllSessions(opt)
+
     // Assuming We are to always respond with a pagination.
     // Paginate w/ query params, deafult values used otherwise.
     sessionList = PaginateMemoryDB(sessionList, opt.page, opt.limit);
@@ -58,6 +65,29 @@ class MemoryDBAdapter extends DBAdapter {
   async getSession(sessionId) {
     const session = SESSION_STORE[sessionId];
     return session;
+  }
+
+  // Get all events across all sessions.
+  async getEvents(opt) {
+    const sessionList = await this.getAllSessions(opt)
+
+    let eventsList = sessionList.reduce((events, session) => {
+      session.getTrackedEvents().events.forEach( event => {
+        events.push(event)
+      })
+      return events;
+    }, []);
+
+      // Sort by newest first
+    eventsList.sort((a, b) => {
+      const dateA = new Date(a["issuedAt"]);
+      const dateB = new Date(b["issuedAt"]);
+      return dateB - dateA;
+    });
+
+    eventsList = PaginateMemoryDB(eventsList, opt.page, opt.limit);
+    
+    return eventsList;
   }
 
   async DeleteSession(sessionId) {

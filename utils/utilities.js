@@ -62,7 +62,7 @@ function PaginateMemoryDB(list = [], pageNum, pageLimit) {
 
   const totalCount = list.length;
 
-  let sessions = list.slice(startAt, endAt);
+  let items = list.slice(startAt, endAt);
 
   return {
     previousPage: getPreviousPage(page),
@@ -71,7 +71,7 @@ function PaginateMemoryDB(list = [], pageNum, pageLimit) {
     totalPages: getTotalPages(limit, totalCount),
     limit: limit,
     totalItems: totalCount,
-    data: sessions,
+    data: items,
   };
 }
 

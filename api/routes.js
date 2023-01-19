@@ -287,6 +287,18 @@ const SessionSchema = () => ({
   },
 });
 
+const EventSchema = () => ({
+  description: "Event description",
+  type: "object",
+  properties: {
+    type: { type: "string" },
+    issuedAt: { type: "string" },
+    onAd: { type: "string" },
+    userAgent: { type: "string" },
+    sessionId: { type: "string" }
+  },
+})
+
 const BadRequestSchema = (exampleMsg) => ({
   description: "Bad request error description",
   type: "object",
@@ -450,15 +462,7 @@ const schemas = {
         properties: {
           events: {
             type: "array",
-            items: {
-              type: "object",
-              properties: {
-                type: { type: "string" },
-                issuedAt: { type: "string" },
-                onAd: { type: "string" },
-                userAgent: { type: "string" },
-              },
-            },
+            items: EventSchema(),
           },
         },
         example: {
@@ -509,6 +513,45 @@ const schemas = {
 
       404: BadRequestSchema("Session with ID: 'xxx-xxx-xxx-xxx' was not found"),
     },
+  },
+  "GET/sessions/events": {
+    description: "Gets all events across all sessions",
+    tags: ["sessions"],
+    query: {
+      type: "object",
+      properties: {
+        page: {
+          type: "string",
+          description: "Page number.",
+          example: "1",
+        },
+        limit: {
+          type: "string",
+          description: "Limit of events on each page.",
+          example: "10",
+        },
+      },
+    },
+    response: {
+      200: {
+        description: "On success return a pagination object",
+        type: "object",
+        properties: {
+          previousPage: { example: "null" },
+          currentPage: { example: "1" },
+          nextPage: { example: "2" },
+          totalPages: { example: "2" },
+          limit: { example: "5" },
+          totalItems: { example: "10" },
+          data: {
+            description: "On success returns an array of events",
+            type: "array",
+            items: EventSchema(),
+          },
+        },
+      },
+    },
+    security: [{ apiKey: [] }],
   },
   "DELETE/sessions/:sessionId": {
     description: "Deletes the given session",
@@ -722,7 +765,7 @@ module.exports = (fastify, opt, next) => {
           targetHost: req.headers["host"],
         };
 
-        const sessionList = await DBAdapter.getAllSessions(options);
+        const sessionList = await DBAdapter.getSessions(options);
         reply.code(200).send(sessionList);
       } catch (exc) {
         logger.error(exc, {
@@ -850,6 +893,7 @@ module.exports = (fastify, opt, next) => {
             issuedAt: logMsg.time,
             onAd: adId,
             userAgent: userAgent,
+            sessionId: sessionId,
           };
           session.AddTrackedEvent(newEvent);
           // Update session in storage
@@ -896,6 +940,33 @@ module.exports = (fastify, opt, next) => {
         logger.error(exc, {
           label: req.headers["host"],
           sessionId: sessionId,
+        });
+        reply.code(500).send({ message: exc.message });
+      }
+    }
+  );
+
+  fastify.get(
+    "/sessions/events",
+    {
+      schema: schemas["GET/sessions/events"],
+    },
+    async (req, reply) => {
+      try {
+
+        const options = {
+          page: req.query.page,
+          limit: req.query.limit,
+          targetHost: req.headers["host"],
+        };
+
+        const eventsList = await DBAdapter.getEvents(options)
+        logger.info(eventsList)
+        reply.code(200).send(eventsList);
+
+      } catch (exc) {
+        logger.error(exc, {
+          label: req.headers["host"]
         });
         reply.code(500).send({ message: exc.message });
       }
