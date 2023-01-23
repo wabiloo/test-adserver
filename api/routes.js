@@ -295,7 +295,8 @@ const EventSchema = () => ({
     issuedAt: { type: "string" },
     onAd: { type: "string" },
     userAgent: { type: "string" },
-    sessionId: { type: "string" }
+    sessionId: { type: "string" },
+    url: { type: "string" }
   },
 })
 
@@ -894,6 +895,7 @@ module.exports = (fastify, opt, next) => {
             onAd: adId,
             userAgent: userAgent,
             sessionId: sessionId,
+            url: req.url
           };
           session.AddTrackedEvent(newEvent);
           // Update session in storage
