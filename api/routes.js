@@ -961,7 +961,6 @@ module.exports = (fastify, opt, next) => {
         };
 
         const eventsList = await DBAdapter.getEvents(options)
-        logger.info(eventsList)
         reply.code(200).send(eventsList);
 
       } catch (exc) {
